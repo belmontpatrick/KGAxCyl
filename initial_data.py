@@ -1,6 +1,9 @@
 import numpy as np
 import collocations as col
 import parameters as par
+from plot_matrices import SB_plot
+
+np.set_printoptions(precision=16)
 
 A0 = par.A0
 PR = par.PR
@@ -32,4 +35,7 @@ a0cyl = np.dot(SB_inv,g0cyl)
 #defining da0cyl
 
 da0cyl = np.zeros(((PR + 1) * (PZ + 1),1))
+
+print(a0cyl.shape)
+print(da0cyl.shape)
 

@@ -1,6 +1,8 @@
 import numpy as np
 import collocations as col
+import parameters as par
 
+PZ = par.PZ
 ddzSB_cyl = col.ddzSB
 drSB = col.drSB
 ddrSB_cyl = col.ddrSB
@@ -12,7 +14,7 @@ ddzSB = col.ddzSB
 drSB = col.drSB
 ddrSB = col.ddrSB
 
-rrep = np.repeat(rcol,31)
+rrep = np.repeat(rcol,PZ+1)
 
 def dda(c):
 

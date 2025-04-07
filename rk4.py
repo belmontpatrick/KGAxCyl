@@ -7,6 +7,8 @@ import dynsys as ds
 import plot_matrices as pm
 import parameters as par
 
+np.set_printoptions(precision=16)
+
 PR = par.PR
 PZ = par.PZ
 M = pm.M
@@ -22,8 +24,11 @@ dda = ds.dda
 
 #Runge-Kutta 4th order
 
-# phi_set = np.zeros((N,M))
-a0cyl_set = np.zeros((N,(PR+1)*(PZ+1)))
+
+file_acyl = open("rk4_acyl.txt", "w")
+# file_dacyl = open("rk4_dacyl.txt", "w")
+
+t = 0.0           # Initial time
 
 for i in range(N):  # Runge Kutta 4th order
 
@@ -50,8 +55,17 @@ for i in range(N):  # Runge Kutta 4th order
   da0cyl = da0cyl + 1/6 * (K1 + 2*K2 + 2*K3 + K4)
   a0cyl = a0cyl + 1/6 * (L1 + 2*L2 + 2*L3 + L4)
 
-  a0cyl_set[i,:] = a0cyl[:,0]
-#   phi_set[i,:] = np.dot(a0cyl,SB_plot)
-#   phi_set[i] = np.dot(a0cyl, SB_plot)[0, :M] 
+  t += h
+  # Save the results to the files
+  file_acyl.write(str(t))
 
-np.savetxt("rk4testphi.txt", a0cyl_set, fmt="%.16e", delimiter="\t")
+  for j in range(len(a0cyl)):
+              file_acyl.write(str(a0cyl[j]))
+              file_acyl.write(' ')
+
+  file_acyl.write("\n")
+
+# Close files
+file_acyl.close()
+# file_dacyl.close()
+

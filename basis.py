@@ -1,5 +1,7 @@
 import numpy as np
 from parameters import LZ,LR
+import scipy.special as sp
+from scipy.optimize import fsolve
 
 
 # Basis function in z using Rational Chebyshev polynomials
@@ -34,3 +36,4 @@ def ddSBr(n,r):
     res = (-np.sin((2*n+1)*np.arctan(LR/r))*(2*n+1)**2*LR**2/(r**4*(1+LR**2/r**2)**2)+
 2*np.cos((2*n+1)*np.arctan(LR/r))*(2*n+1)*LR/(r**3*(1+LR**2/r**2))-2*np.cos((2*n+1)*np.arctan(LR/r))*(2*n+1)*LR**3/(r**5*(1+LR**2/r**2)**2))
     return res
+

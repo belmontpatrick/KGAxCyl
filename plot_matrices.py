@@ -16,7 +16,7 @@ PR = par.PR
 PZ = par.PZ
 SB = col.SB
 
-M = 100
+M = 10
 
 rplot = np.linspace(0.000001,10,M)
 zplot = np.linspace(0.000001,10,M)
@@ -56,4 +56,4 @@ for i in range(PZ+1):
 
 # psirplot = SBr_plot[]
 
-SB_plot = np.tile(SBz_plot,(PR+1,M)) * repelem(SBr_plot,(PZ+1,M))
+SB_plot = np.tile(SBr_plot,(PZ+1,M)) * repelem(SBz_plot,(PR+1,M))

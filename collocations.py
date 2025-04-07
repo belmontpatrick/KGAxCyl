@@ -3,6 +3,8 @@ import parameters as par
 import basis as bs
 import repelem as rep
 
+np.set_printoptions(precision=16)
+
 LR = par.LR
 PR = par.PR
 PZ = par.PZ
@@ -79,15 +81,14 @@ for i in range(PR+1):
 
 " Cylindrical Basis Matrix :"
 
-SB = np.tile(SB_z,(PR+1,PR+1)) * repelem(SB_r,(PZ+1,PZ+1))
+SB = np.kron(SB_r,SB_z)
 
 SB_inv = np.linalg.inv(SB)
 
-drSB = np.tile(SB_z,(PR+1,PR+1)) * repelem(rSB,(PZ+1,PZ+1))
+drSB = np.kron(rSB,SB_z)
 
-ddrSB = np.tile(SB_z,(PR+1,PR+1)) * repelem(rrSB,(PZ+1,PZ+1))
+ddrSB = np.kron(rrSB,SB_z)
 
-dzSB = np.tile(zSB,(PR+1,PR+1)) * repelem(SB_r,(PZ+1,PZ+1))
+dzSB = np.kron(SB_r,zSB)
 
-ddzSB = np.tile(zzSB,(PR+1,PR+1)) * repelem(SB_r,(PZ+1,PZ+1))
-
+ddzSB = np.kron(SB_r,zzSB)
