@@ -1,7 +1,7 @@
 import numpy as np
 
-PR = 20
-PZ = 10
+PR = 3
+PX = 3
 LR = 1
-LZ = 1
+LX = 1
 A0 = 0.0002
