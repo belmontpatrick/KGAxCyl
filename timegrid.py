@@ -1,10 +1,11 @@
 import numpy as np
 
-#defining grid in time
+import numpy as np
 
-t0 = 0.0
-tf = 1.0
-delta = t0 - tf
-h = 0.1
-N = int((tf - t0) / h)
-#t = np.linspace(t0,tf,N)
+h = 0.01
+tf = 5
+
+It = int(tf/h)
+# print(It)
+
+t = np.linspace(0, tf, It)

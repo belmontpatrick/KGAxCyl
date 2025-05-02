@@ -1,41 +1,88 @@
+import time
 import numpy as np
-from parameters import LX,LR,PR,PX
-import scipy.special as sp
+import parameters as par
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
-# Basis function in r using Odd Chebyshev Polynomials
 
-def SB(n, r):
-    res = np.sin((n+1)*np.arctan(LR/r)) 
+np.set_printoptions(precision=16)
+
+t0 = time.process_time()
+
+PR_TEST = par.PR_TEST
+PZ_TEST = par.PZ_TEST
+LR_TEST = par.LR_TEST
+LZ_TEST = par.LZ_TEST
+
+
+def SBr(n, r):
+    res = np.sin((n + 1) * ((np.pi / 2) - np.arctan(r / LR_TEST)))
     return res
 
-def dSB(n,r):
-    res = -np.cos((n+1)*np.arctan(LR/r))*(n+1)*LR/(r**2*(1+LR**2/r**2)) 
+def dSBr(n,r):
+    res = -np.cos((2*n+1)*np.arctan(LR_TEST/r))*(2*n+1)*LR_TEST/(r**2*(1+LR_TEST**2/r**2)) 
     return res
 
 
-def ddSB(n,r):
-    res = (-np.sin((n+1)*np.arctan(LR/r))*(n+1)**2*LR**2/(r**4*(1+LR**2/r**2)**2)+
-2*np.cos((n+1)*np.arctan(LR/r))*(n+1)*LR/(r**3*(1+LR**2/r**2))-2*np.cos((n+1)*np.arctan(LR/r))*(n+1)*LR**3/(r**5*(1+LR**2/r**2)**2))
+def ddSBr(n,r):
+    res = (-np.sin((2*n+1)*np.arctan(LR_TEST/r))*(2*n+1)**2*LR_TEST**2/(r**4*(1+LR_TEST**2/r**2)**2)+
+2*np.cos((2*n+1)*np.arctan(LR_TEST/r))*(2*n+1)*LR_TEST/(r**3*(1+LR_TEST**2/r**2))-2*np.cos((2*n+1)*np.arctan(LR_TEST/r))*(2*n+1)*LR_TEST**3/(r**5*(1+LR_TEST**2/r**2)**2))
     return res
 
-# Basis function in x using Legendre Polynomials
+def SBx(n, x):
+    r = LR_TEST * x / ( np.sqrt(1 - x**2) )
+    res = np.sin((n + 1) * ((np.pi / 2) - np.arctan(r / LR_TEST)))
+    return res
 
-def P(i, x):
-    return sp.legendre(i)(x)
+def SBz(n, z):
+    res = np.sin((n + 1) * ((np.pi / 2) - np.arctan(z / LZ_TEST)))
+    return res
 
-def dP(i, x):
-    return sp.legendre(i).deriv()(x)
+def dSBz(n,z):
+    res = -np.cos((2*n+1)*np.arctan(LZ_TEST/z))*(2*n+1)*LZ_TEST/(z**2*(1+LZ_TEST**2/z**2)) 
+    return res
 
-def ddP(i, x):
-    return sp.legendre(i).deriv().deriv()(x)
 
-###Big Basis
+def ddSBz(n,z):
+    res = (-np.sin((2*n+1)*np.arctan(LZ_TEST/z))*(2*n+1)**2*LZ_TEST**2/(z**4*(1+LZ_TEST**2/z**2)**2)+
+2*np.cos((2*n+1)*np.arctan(LZ_TEST/z))*(2*n+1)*LZ_TEST/(z**3*(1+LZ_TEST**2/z**2))-2*np.cos((2*n+1)*np.arctan(LZ_TEST/z))*(2*n+1)*LZ_TEST**3/(z**5*(1+LZ_TEST**2/z**2)**2))
+    return res
 
-def Basis(n, r, x):
-    list = [SB(2 * i, r) * P(2 * j, x)
-            for i in range(PR + 1) for j in range(PX + 1)]
+def SBy(n, y):
+    z = LZ_TEST * y / ( np.sqrt(1 - y**2) )
+    res = np.sin((n + 1) * ((np.pi / 2) - np.arctan(z / LZ_TEST)))
+    return res
+
+
+def SBal(n, r, z):
+    list = [SBr(2 * i, r) * SBz(2 * j, z)
+            for i in range(PR_TEST + 1) for j in range(PZ_TEST + 1)]
     return list[n]
 
-# def Basis(i, j, r, x):
-#     list = SB(2 * i, r) * P(2 * j, x)
-#     return list
+def drSBal(n, r, z):
+    list = [dSBr(2 * i, r) * SBz(2 * j, z)
+            for i in range(PR_TEST + 1) for j in range(PZ_TEST + 1)]
+    return list[n]
+
+def ddrSBal(n, r, z):
+    list = [ddSBr(2 * i, r) * SBz(2 * j, z)
+            for i in range(PR_TEST + 1) for j in range(PZ_TEST + 1)]
+    return list[n]
+
+def dzSBal(n, r, z):
+    list = [SBr(2 * i, r) * dSBz(2 * j, z)
+            for i in range(PR_TEST + 1) for j in range(PZ_TEST + 1)]
+    return list[n]
+
+def ddzSBal(n, r, z):
+    list = [SBr(2 * i, r) * ddSBz(2 * j, z)
+            for i in range(PR_TEST + 1) for j in range(PZ_TEST + 1)]
+    return list[n]
+
+def SBal_xy(n, x, y):
+    list = [SBx(2 * i, x) * SBy(2 * j, y)
+            for i in range(PR_TEST + 1) for j in range(PZ_TEST + 1)]
+    return list[n]
+
+t1 = time.process_time()
+print('Running time (basis):', t1 - t0, 's')

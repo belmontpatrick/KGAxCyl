@@ -1,126 +1,78 @@
 import numpy as np
-import parameters as par
 import basis as bs
+import collocations as col
+import parameters as par
+import time
 import matplotlib.pyplot as plt
-from matplotlib import cm
-import collocation as col
+from mpl_toolkits import mplot3d
 
-A0 = par.A0
-rcol = col.rcol
-xcol = col.xcol
-PX = par.PX
-PR = par.PR
-Basis = bs.Basis
-P = bs.P
-SB = bs.SB
+np.set_printoptions(precision=16)
 
-"Importing Matrices:"
-Psi = np.loadtxt("PsiPR3L1PX3.txt", delimiter="\t")
+t0 = time.process_time()
 
-Psi_inv = np.loadtxt("PsiPR3L1PX3.txt", delimiter="\t")
-
-M = np.loadtxt("MPR3L1PX3.txt", delimiter="\t")
-M_inv = np.loadtxt("M_invPR3L1PX3.txt", delimiter="\t")
-
-rtile = np.tile(rcol, (len(xcol)))
-
-xrepeat = np.repeat(xcol, len(rcol))
-
-Rcol, Xcol = np.meshgrid(rcol,xcol)
-
-"Defining inital data"
-
-def iniaxsph(A,r,x):
-    return A * np.exp(-r**2)*(1 - x ** 2)
-
-# inidata = iniaxsph(A0, rtile, xrepeat)
-# phi0mesh = iniaxsph(A0, Rcol, Xcol)
-
-# a0mesh = np.dot(M_inv, phi0mesh)
-
-# a0sph = np.dot(Psi_inv, inidata)
-
-phi_exact_col_arr = [iniaxsph(A0,col.rcol[j], col.xcol[k])
-                          for j in range(PR + 1)
-                          for k in range(PX + 1)]
-
-a0_col_arr = np.dot(M_inv, phi_exact_col_arr)
-
-#np.savetxt("a0sphPR3L1PX3.txt", a0sph, fmt="%.16e", delimiter="\t")
-
-def phi_approx(a0,r,x):
-    res = sum(a0[k] * Basis(k, r, x) for k in range((PR+1) * (PX+1)))
+def alpha_m1_exact(r, z, A0, sigma_r, sigma_z):
+    res = A0 * (np.exp( - (r**2 / sigma_r**2) - (z**2 / sigma_z**2) ) )
     return res
 
-# phi0 = np.einsum('jl, l -> j', Psi_inv, phi_exact_col_arr)
+def alpha_m1_approx(r, z, a0, pr, pz):
+    res = sum(a0[k] * bs.SBal(k, r, z) for k in range((pr+1) * (pz+1)))
+    return res
 
-Pcounts = (PR + 1) * (PX + 1)
-
-da0sph = np.zeros(Pcounts)
-
-
-####
-
-# Pcounts = (PR + 1) * (PX + 1)
-
-# ones = np.ones((PX+1))
-
-# P_1 = np.zeros([PX+1,PX+1])
-
-# for i in range(PX+1):
-#   P_1[i,] = P(2*i,ones)
-
-# zeros = np.zeros(rcol.shape)
+PR_TEST = par.PR_TEST
+PZ_TEST = par.PZ_TEST
+LR_TEST = par.LR_TEST
+LZ_TEST = par.LZ_TEST
+A0_TEST = par.A0_TEST
+R0_TEST = par.R0_TEST
+SIGMA_R = par.SIGMA_R
+SIGMA_Z = par.SIGMA_Z
 
 
-# SB_0 = np.zeros([PR+1,PR+1])
+alpha_m1_exact_col_arr = [alpha_m1_exact(col.col_r_shift[j], col.col_z_shift[k], A0_TEST, SIGMA_R, SIGMA_Z)
+                         for j in range(PR_TEST + 1) for k in range(PZ_TEST + 1)]
 
-# for i in range(PR+1):
-#   SB_0[i,] = SB(i,zeros)
+alpha0 = np.einsum('jl,l->j', col.SBal_inv, alpha_m1_exact_col_arr)
+dalpha0 = np.zeros((PR_TEST + 1)*(PZ_TEST + 1))
 
-# print(SB_0.T[0])
+TRUNC = (PR_TEST + 1 )*(PZ_TEST +1)
 
-# print(P_1.T[0])
+fig1 = plt.figure()
+ax1 = plt.axes(projection="3d")
+r = np.linspace(0, 10, 100)
+z = np.linspace(-5, 5, 100)
+R, Z = np.meshgrid(r, z)
+Y1 = alpha_m1_exact(R, Z, A0_TEST, SIGMA_R, SIGMA_Z)
+ax1.plot_surface(R, Z, Y1, cmap = 'plasma')
+ax1.set_xlabel('r')
+ax1.set_ylabel('z')
+ax1.set_zlabel('alpha0-1_exact')
+# plt.savefig('alpha0_exact_cyl_trunc=%i.pdf' %(PR_TEST + 1)*(PZ_TEST + 1))
+plt.savefig('alpha0-1_exact_cyl_trunc=%i.pdf' %TRUNC)
 
-# basis01 = np.kron(SB_0.T, P_1.T)
+fig2 = plt.figure()
+ax2 = plt.axes(projection="3d")
+r = np.linspace(0, 10, 100)
+z = np.linspace(-5, 5, 100)
+R, Z = np.meshgrid(r, z)
+Y2 = alpha_m1_approx(R, Z, alpha0, PR_TEST, PZ_TEST)
+ax2.plot_surface(R, Z, Y2, cmap = 'plasma')
+ax2.set_xlabel('r')
+ax2.set_ylabel('z')
+ax2.set_zlabel('alpha0-1_approx')
+# plt.savefig('alpha0_approx_cyl_trunc=%i.pdf' %(PR_TEST + 1)*(PZ_TEST + 1))
+plt.savefig('alpha0-1_approx_cyl_trunc=%i.pdf' %TRUNC)
 
-# b01 = basis01[0]
+fig3 = plt.figure()
+ax3 = plt.axes(projection="3d")
+error = alpha_m1_exact(R, Z, A0_TEST, SIGMA_R, SIGMA_Z) - alpha_m1_approx(R, Z, alpha0, PR_TEST, PZ_TEST)
+ax3.plot_surface(R, Z, error, cmap = 'plasma')
+ax3.set_xlabel('r')
+ax3.set_ylabel('z')
+ax3.set_zlabel('error')
+# plt.savefig('alpha0_approx_cyl_trunc=%i.pdf' %(PR_TEST + 1)*(PZ_TEST + 1))
+plt.savefig('error_trunc=%i.pdf' %TRUNC)
 
-# # print(b01)
-
-# phi001 = sum(a0sph[k] * b01[k] for k in range((PR+1) * (PX+1)))
-
-# print(phi001)
-
-rplot = np.linspace(0.00001, 1, 20)
-xplot = np.linspace(-1, 1, 20)
-
-Rplot, Xplot = np.meshgrid(rplot, xplot)
-
-#phi0_approx = phi_approx(Rplot, Xplot, a0sph)
-phi0_approx = phi_approx(a0_col_arr, Rplot, Xplot)
-
-phiinidata = iniaxsph(A0, Rplot, np.flip(Xplot))
-
-ax = plt.axes(projection = '3d')
-# ax.plot_surface(Rplot, Xplot, phiinidata, cmap=cm.viridis)
-ax.plot_surface(Rplot, Xplot, phi0_approx, cmap=cm.viridis)
 plt.show()
 
-# fig1 = plt.figure()
-# ax1 = plt.axes(projection="3d")
-# R, Z = np.meshgrid(np.linspace(0.0001, 10, 10), np.linspace(0.0001, 10, 10))
-# Y1 = iniaxsph(A0,Rplot, Xplot)
-# ax1.plot_surface(R, Z, Y1, cmap='plasma')
-# ax1.set_xlabel('r')
-# ax1.set_ylabel('z')
-# ax1.set_zlabel('alpha0_exact')
-
-# fig2 = plt.figure()
-# ax2 = plt.axes(projection="3d")
-# R, Z = np.meshgrid(np.linspace(0.0001, 10,0), np.linspace(0.0001, 10, 10))
-# Y2 = phi_approx(R, Z, phi0)
-# ax2.plot_surface(R, Z, Y2, cmap='plasma')
-# ax2.set_xlabel('r')
-# ax2.set_ylabel('z')
-# ax2.set_zlabel('alpha0_approx')
+t1 = time.process_time()
+print('Running time (initial data):', t1-t0, 's')
